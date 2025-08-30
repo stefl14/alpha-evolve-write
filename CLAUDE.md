@@ -50,6 +50,7 @@ make ci                  # Run full CI pipeline (lint + type-check + test-cov)
 make run                 # Run the application
 make clean               # Clean build artifacts
 make build               # Build package
+make commit              # Interactive commitizen commit (use manual if fails)
 
 # Docker
 make docker-build        # Build Docker image
@@ -135,6 +136,14 @@ DEFAULT_MODE=general
 3. **Check Coverage**: Maintain high test coverage (>90%)
 4. **Lint Early**: Run `make format lint type-check` frequently
 5. **Docker Testing**: Test in containerized environment before commits
+6. **Conventional Commits**: Use `make commit` for commitizen or manual format:
+   - `feat:` new features
+   - `fix:` bug fixes
+   - `docs:` documentation changes
+   - `style:` formatting changes
+   - `refactor:` code restructuring
+   - `test:` adding tests
+   - `chore:` maintenance tasks
 
 ## Writing Modes
 
