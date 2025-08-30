@@ -1,8 +1,9 @@
 """Tests for Essay model."""
 
-import pytest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
+
+import pytest
 
 from alpha_evolve_essay.models import Essay
 
@@ -12,16 +13,13 @@ class TestEssayModel:
 
     def test_essay_creation_with_minimal_fields_succeeds(self):
         """Test that Essay can be created with just content and prompt."""
-        essay = Essay(
-            content="This is a test essay about AI.",
-            prompt="Write about AI"
-        )
-        
+        essay = Essay(content="This is a test essay about AI.", prompt="Write about AI")
+
         assert essay.content == "This is a test essay about AI."
         assert essay.prompt == "Write about AI"
         assert isinstance(essay.id, UUID)
         assert isinstance(essay.created_at, datetime)
-        assert essay.created_at.tzinfo == timezone.utc
+        assert essay.created_at.tzinfo == UTC
         assert essay.version == 1
         assert essay.parent_id is None
         assert essay.metadata == {}
@@ -31,15 +29,15 @@ class TestEssayModel:
         """Test that Essay accepts all optional fields correctly."""
         metadata = {"mode": "creative", "temperature": 0.8}
         parent_uuid = UUID("12345678-1234-5678-9012-123456789012")
-        
+
         essay = Essay(
             content="Detailed essay content here.",
             prompt="Write a creative essay",
             version=3,
             parent_id=parent_uuid,
-            metadata=metadata
+            metadata=metadata,
         )
-        
+
         assert essay.content == "Detailed essay content here."
         assert essay.prompt == "Write a creative essay"
         assert essay.version == 3
@@ -52,15 +50,14 @@ class TestEssayModel:
         # Content with extra whitespace should still count words correctly
         essay = Essay(content="  hello  world  ", prompt="Test prompt")
         assert essay.word_count == 2
-        
+
         essay = Essay(content="\n\t hello   \n\t world  \n", prompt="Test prompt")
         assert essay.word_count == 2
 
     def test_essay_word_count_calculation_handles_punctuation(self):
         """Test word count calculation with punctuation and special characters."""
         essay = Essay(
-            content="Hello, world! This is a test. How are you?",
-            prompt="Test prompt"
+            content="Hello, world! This is a test. How are you?", prompt="Test prompt"
         )
         # Should count: Hello, world, This, is, a, test, How, are, you = 9 words
         assert essay.word_count == 9
@@ -79,7 +76,7 @@ class TestEssayModel:
         """Test that Essay version must be positive integer."""
         with pytest.raises(ValueError, match="Version must be positive"):
             Essay(content="Valid content", prompt="Valid prompt", version=0)
-            
+
         with pytest.raises(ValueError, match="Version must be positive"):
             Essay(content="Valid content", prompt="Valid prompt", version=-1)
 
@@ -93,7 +90,7 @@ class TestEssayModel:
         """Test that each Essay instance gets a unique ID."""
         essay1 = Essay(content="Content 1", prompt="Prompt 1")
         essay2 = Essay(content="Content 2", prompt="Prompt 2")
-        
+
         assert essay1.id != essay2.id
         assert isinstance(essay1.id, UUID)
         assert isinstance(essay2.id, UUID)
@@ -101,20 +98,20 @@ class TestEssayModel:
     def test_essay_created_at_is_utc_timezone(self):
         """Test that created_at timestamp is in UTC timezone."""
         essay = Essay(content="Content", prompt="Prompt")
-        assert essay.created_at.tzinfo == timezone.utc
+        assert essay.created_at.tzinfo == UTC
 
     def test_essay_equality_comparison_works_correctly(self):
         """Test that Essay instances can be compared for equality."""
         essay1 = Essay(content="Same content", prompt="Same prompt")
         essay2 = Essay(content="Same content", prompt="Same prompt")
         essay3 = Essay(content="Different content", prompt="Same prompt")
-        
+
         # Same content should be equal (ignoring auto-generated fields)
         assert essay1.content == essay2.content
         assert essay1.prompt == essay2.prompt
         # But different instances have different IDs
         assert essay1.id != essay2.id
-        
+
         # Different content should not be equal
         assert essay1.content != essay3.content
 
@@ -124,9 +121,9 @@ class TestEssayModel:
             content="Test content",
             prompt="Test prompt",
             version=2,
-            metadata={"key": "value"}
+            metadata={"key": "value"},
         )
-        
+
         # Serialize to dict
         data = original.model_dump()
         assert data["content"] == "Test content"
@@ -136,7 +133,7 @@ class TestEssayModel:
         assert "id" in data
         assert "created_at" in data
         assert "word_count" in data
-        
+
         # Deserialize from dict
         restored = Essay(**data)
         assert restored.content == original.content
