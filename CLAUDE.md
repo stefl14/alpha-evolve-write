@@ -89,11 +89,86 @@ async def test_async_function():
 
 ## Code Style and Standards
 
-- **Type Hints**: Required on all functions and methods
-- **Line Length**: 88 characters (Black default)
-- **Import Order**: Enforced by ruff/isort
-- **Docstrings**: Required for public functions and classes
-- **Error Handling**: Use specific exception types, avoid bare `except:`
+### Type Annotations
+- **Required**: Type hints on all functions, methods, and class attributes
+- **Return Types**: Always specify return types, including `-> None`
+- **Complex Types**: Use `typing` module for complex types
+  ```python
+  from typing import List, Dict, Optional, Union
+  
+  def process_essays(essays: List[Essay]) -> Dict[str, float]:
+      """Process essays and return scores."""
+  ```
+
+### Docstrings (Google Style)
+- **Required**: All public functions, classes, and modules
+- **Format**: Google-style docstrings for consistency with type hints
+  ```python
+  def generate_essay(prompt: str, mode: str = "general") -> Essay:
+      """Generate an essay from the given prompt.
+      
+      Args:
+          prompt: The essay prompt or topic
+          mode: Writing mode (creative, general, formal, technical)
+          
+      Returns:
+          Essay object containing generated content and metadata
+          
+      Raises:
+          EssayGenerationError: If generation fails
+          ValueError: If mode is invalid
+      """
+  ```
+
+### Import Organization  
+- **Order**: Standard library → Third party → Local imports
+- **Style**: Absolute imports preferred, relative only within packages
+- **Grouping**: Separate groups with blank lines
+  ```python
+  import os
+  from typing import List, Dict
+  
+  import openai
+  from pydantic import BaseModel
+  
+  from alpha_evolve_essay.models import Essay
+  from alpha_evolve_essay.core.exceptions import EssayError
+  ```
+
+### Code Structure
+- **Line Length**: 88 characters (Black default)  
+- **Naming**: 
+  - `snake_case` for functions, variables, modules
+  - `PascalCase` for classes
+  - `UPPER_CASE` for constants
+- **Error Handling**: Use specific exception types, never bare `except:`
+  ```python
+  try:
+      result = api_call()
+  except OpenAIError as e:
+      logger.error(f"OpenAI API failed: {e}")
+      raise EssayGenerationError(f"Generation failed: {e}") from e
+  ```
+
+### Testing Style
+- **Test Names**: Descriptive, following `test_<what>_<condition>_<expected>`
+  ```python
+  def test_generate_essay_with_creative_mode_returns_essay_object():
+  def test_evaluate_essay_with_invalid_criteria_raises_value_error():
+  ```
+- **Fixtures**: Use descriptive fixture names, avoid generic names
+- **Assertions**: One logical assertion per test, use specific assertion methods
+- **Mocking**: Mock at the service boundary, not internal implementation details
+
+### Development Practices  
+- **Single Responsibility**: Functions should do one thing well
+- **Immutability**: Prefer immutable data structures, use dataclasses/Pydantic
+- **Logging**: Use structured logging with appropriate levels
+  ```python
+  logger.info("Starting essay generation", extra={"prompt_length": len(prompt)})
+  ```
+- **Configuration**: Environment variables with sensible defaults
+- **Async/Await**: Use async for I/O operations (API calls, file operations)
 
 ## Environment Configuration
 
@@ -109,6 +184,54 @@ INITIAL_DRAFT_COUNT=5
 TOP_K_SELECTION=3
 DEFAULT_MODE=general
 ```
+
+## API Cost Management
+
+**IMPORTANT**: This project can incur significant OpenAI API costs if not managed properly. Follow these practices:
+
+### Development Without API Costs
+
+1. **Use Mocks for All Tests**: Never make real API calls in tests
+   ```python
+   # All tests should use mock_openai_client fixture
+   def test_essay_generation(mock_openai_client):
+       # Test logic without API calls
+   ```
+
+2. **Environment Variables for Testing**:
+   ```bash
+   # Set in test environment
+   USE_MOCK_LLM=true
+   OPENAI_API_KEY=test_key_not_real
+   ```
+
+3. **Mock LLM Service**: Create a mock service that returns predefined responses
+   ```python
+   class MockLLMService:
+       def generate_essay(self, prompt: str) -> str:
+           return "Mock essay response for testing"
+   ```
+
+### Cost Control Strategies
+
+- **Rate Limiting**: Implement request throttling
+- **Small Models**: Use cheaper models (gpt-3.5-turbo) for development
+- **Short Generations**: Limit max_tokens in development
+- **Caching**: Cache API responses during development
+- **Local Development Flag**: 
+  ```python
+  if os.getenv("DEVELOPMENT_MODE") == "true":
+      return mock_llm_response()
+  ```
+
+### Real API Testing
+
+Only use real API calls when:
+- Testing final integration before deployment
+- Validating specific model behavior
+- Performance testing with small datasets
+
+**Budget Alert**: Set OpenAI usage alerts and billing limits!
 
 ## Key Components
 
@@ -131,19 +254,33 @@ DEFAULT_MODE=general
 
 ## Development Workflow
 
+### TDD Process
+1. **Red**: Write failing test first
+2. **Green**: Write minimal code to pass test
+3. **Refactor**: Improve code while keeping tests passing
+4. **Repeat**: Continue cycle for each feature
+
+### Daily Workflow
 1. **Start with Tests**: Always write tests before implementation
-2. **Use Make Commands**: Leverage Makefile for consistency
-3. **Check Coverage**: Maintain high test coverage (>90%)
-4. **Lint Early**: Run `make format lint type-check` frequently
-5. **Docker Testing**: Test in containerized environment before commits
-6. **Conventional Commits**: Use `make commit` for commitizen or manual format:
-   - `feat:` new features
-   - `fix:` bug fixes
-   - `docs:` documentation changes
-   - `style:` formatting changes
-   - `refactor:` code restructuring
-   - `test:` adding tests
-   - `chore:` maintenance tasks
+2. **Single Test Focus**: Run specific tests, not whole suite (`pytest tests/test_specific.py::test_function`)
+3. **Type Check Early**: Run `make type-check` after code changes
+4. **Lint Frequently**: Run `make format lint` to catch issues early
+5. **Test Coverage**: Maintain >90% coverage, check with `make test-cov`
+
+### Quality Gates
+- **Before Commits**: Always run `make ci` (lint + type-check + test-cov)
+- **Code Review**: Ensure Google-style docstrings and type hints
+- **Integration**: Test with Docker before pushing (`make docker-build && make docker-run`)
+
+### Commit Standards
+Use conventional commits via `make commit` or manual format:
+- `feat:` new features
+- `fix:` bug fixes  
+- `docs:` documentation changes
+- `style:` formatting changes
+- `refactor:` code restructuring
+- `test:` adding tests
+- `chore:` maintenance tasks
 
 ## Writing Modes
 
