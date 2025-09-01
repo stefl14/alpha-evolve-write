@@ -304,4 +304,3 @@ class TestEssayGenerator:
         # Note: MockLLMService should produce different content for same prompt
         # when called concurrently due to different timing/ordering
         assert len(set(contents)) >= 1  # At least some variety expected
-

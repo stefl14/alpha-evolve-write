@@ -360,4 +360,3 @@ Essay B demonstrates superior analysis and clearer arguments."""
             assert 0 <= result.overall_score <= 100
             assert len(result.criteria_scores) == 5
             assert len(result.feedback) > 0
-

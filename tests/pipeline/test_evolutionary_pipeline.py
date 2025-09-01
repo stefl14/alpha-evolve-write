@@ -364,4 +364,3 @@ class TestEvolutionaryPipeline:
         assert results1 is not None
         assert results2 is not None
         assert results1["best_essay"].id != results2["best_essay"].id
-

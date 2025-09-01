@@ -325,4 +325,3 @@ Be objective and specific in your comparison."""
             "essay1_id": essay1.id,
             "essay2_id": essay2.id,
         }
-

@@ -277,4 +277,3 @@ class EssayGenerator:
         )
 
         return crossover_instruction
-

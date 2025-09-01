@@ -376,4 +376,3 @@ class EvolutionaryPipeline:
             "total_improvement": improvement_history[-1]["improvement"],
             "improvement_history": improvement_history,
         }
-

@@ -5,4 +5,3 @@ from .essay_generator import EssayGenerator
 from .evolutionary_pipeline import EvolutionaryPipeline
 
 __all__ = ["EssayGenerator", "EssayEvaluator", "EvolutionaryPipeline"]
-
